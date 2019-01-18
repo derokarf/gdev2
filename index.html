@@ -1,0 +1,196 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Hello World</title>
+  <script src="pixi/pixi.js"></script>
+</head>
+<body>
+  <script type="text/javascript">
+    let type = "WebGL"
+    if(!PIXI.utils.isWebGLSupported()){
+      type = "canvas"
+    }
+
+    PIXI.utils.sayHello(type)
+
+    const Sprite = PIXI.Sprite;
+    let hero;
+    let land;
+
+
+    const kx = +0.8682;
+    const ky = +0.4961;
+
+    // List of start frames for hero walk animation 
+    const frames = {
+      'left': 0,
+      'right': 40,
+      'up': 80,
+      'down': 120,
+      'upleft': 160,
+      'upright': 200,
+      'downleft': 240,
+      'downright': 280
+    };
+
+    //keyboard
+    let pressKeys = {
+      up: false,
+      down: false,
+      left: false,
+      right: false
+    };
+
+    function initApp() {
+      let app = new PIXI.Application({ width: 1400, height: 800});
+      app.renderer.backgroundColor = 0xffffff;
+      document.body.appendChild(app.view);
+
+      const loader = new PIXI.loaders.Loader();
+      loader
+        .add('land', 'resources/land.png')
+        .add('heroSheet', 'resources/2.json');
+      loader.load((loader,resources) => {
+        let heroSheet = resources.heroSheet.spritesheet;
+
+        let heroAnimWalkW = [];
+        let heroAnimWalkE = [];
+        let heroAnimWalkN = [];
+        let heroAnimWalkS = [];
+        let heroAnimWalkNW = [];
+        let heroAnimWalkNE = [];
+        let heroAnimWalkSW = [];
+        let heroAnimWalkSE = [];
+        let heroAnim = [];
+
+        for (let i=0; i < 40; i++) {
+          const id = i < 10 ? '0' + i : i;
+          heroAnimWalkW.push(`woman_walk_def_W_00${id}.png`);
+          heroAnimWalkE.push(`woman_walk_def_E_00${id}.png`);
+          heroAnimWalkN.push(`woman_walk_def_N_00${id}.png`);
+          heroAnimWalkS.push(`woman_walk_def_S_00${id}.png`);
+          heroAnimWalkNW.push(`woman_walk_def_NW_00${id}.png`);
+          heroAnimWalkNE.push(`woman_walk_def_NE_00${id}.png`);
+          heroAnimWalkSW.push(`woman_walk_def_SW_00${id}.png`);
+          heroAnimWalkSE.push(`woman_walk_def_SE_00${id}.png`);
+        }
+        hero = new PIXI.extras.AnimatedSprite.fromImages(heroAnimWalkW.concat(
+          heroAnimWalkE,
+          heroAnimWalkN,
+          heroAnimWalkS,
+          heroAnimWalkNW,
+          heroAnimWalkNE,
+          heroAnimWalkSW,
+          heroAnimWalkSE
+        ));
+        land = new Sprite(resources.land.texture);
+
+        hero.y = app.renderer.view.height/2 - hero.height/2;
+        hero.x = app.renderer.view.width/2 - hero.width/2;
+
+        hero.animationSpeed = 1;
+
+        hero.vx = 0;
+        hero.vy = 0;
+
+        window.addEventListener('keydown', event => {
+          switch(event.code) {
+            case 'ArrowUp': {
+              pressKeys.up = true;
+              break;
+            }
+            case 'ArrowDown': {
+              pressKeys.down = true;
+              break;
+            }
+            case 'ArrowLeft': {
+              pressKeys.left = true;
+              break;
+            }
+            case 'ArrowRight': {
+              pressKeys.right = true;
+              break;
+            }
+          }
+
+          event.preventDefault();
+        }, true);
+
+        window.addEventListener('keyup', event => {
+          switch(event.code) {
+            case 'ArrowUp': {
+              // hero.vx = 0;
+              pressKeys.up = false;
+              break;
+            }
+            case 'ArrowDown': {
+              pressKeys.down = false;
+              break;
+            }
+            case 'ArrowLeft': {
+              pressKeys.left = false;
+              break;
+            }
+            case 'ArrowRight': {
+              pressKeys.right = false;
+              break;
+            }
+          }
+
+          event.preventDefault();
+        }, true);
+
+        let frames = 0;
+
+        app.stage.addChild(land);
+        app.stage.addChild(hero);
+
+        app.ticker.add(delta => mainLoop(delta));
+        });
+    }
+
+    function mainLoop(delta) {
+
+      let direct = '';
+      // Hero movement
+      //DY
+      if (pressKeys.up) {
+        hero.vy = -ky;
+        direct = 'up';
+      } else if (pressKeys.down) {
+        hero.vy = ky
+        direct = 'down';
+      } else {
+        hero.vy = 0;
+      }
+      //DX
+      if (pressKeys.left) {
+        hero.vx = -kx;
+        direct += 'left';
+      } else if (pressKeys.right) {
+        hero.vx = kx;
+        direct += 'right';
+      } else {
+        hero.vx = 0;
+      }
+
+      // Playing current frames.
+      if (direct === '') {
+        hero.gotoAndStop(parseInt(hero.currentFrame / 40)*40);
+      } else {
+        const startFrame = frames[direct];
+        if (hero.currentFrame < startFrame || hero.currentFrame > startFrame + 39 || !hero.playing) {
+          hero.gotoAndPlay(startFrame);
+        }
+      }
+
+      hero.x += hero.vx;
+      hero.y += hero.vy;
+
+    }
+
+    initApp();
+  </script>
+</body>
+</html>
