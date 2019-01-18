@@ -17,12 +17,13 @@
     const Sprite = PIXI.Sprite;
     let hero;
     let land;
+    let direct = '';
 
 
     const kx = +0.8682;
     const ky = +0.4961;
 
-    // List of start frames for hero walk animation 
+    // List of start frames for hero walk animation
     const frames = {
       'left': 0,
       'right': 40,
@@ -84,6 +85,9 @@
           heroAnimWalkSW,
           heroAnimWalkSE
         ));
+
+        hero.isGoing = false;
+
         land = new Sprite(resources.land.texture);
 
         hero.y = app.renderer.view.height/2 - hero.height/2;
@@ -93,6 +97,8 @@
 
         hero.vx = 0;
         hero.vy = 0;
+        hero.lastX = hero.x;
+        hero.lastY = hero.y;
 
         window.addEventListener('keydown', event => {
           switch(event.code) {
@@ -151,28 +157,44 @@
     }
 
     function mainLoop(delta) {
-
-      let direct = '';
       // Hero movement
       //DY
-      if (pressKeys.up) {
-        hero.vy = -ky;
-        direct = 'up';
-      } else if (pressKeys.down) {
-        hero.vy = ky
-        direct = 'down';
+      if (!hero.isGoing) {
+        if (pressKeys.up) {
+          hero.vy = -ky;
+          direct = 'up';
+        } else if (pressKeys.down) {
+          hero.vy = ky
+          direct = 'down';
+        } else {
+          hero.vy = 0;
+        }
+        //DX
+        if (pressKeys.left) {
+          hero.vx = -kx;
+          direct += 'left';
+        } else if (pressKeys.right) {
+          hero.vx = kx;
+          direct += 'right';
+        } else {
+          hero.vx = 0;
+        }
       } else {
-        hero.vy = 0;
+        if (Math.abs(hero.lastX - hero.x) >= 21 || Math.abs(hero.lastY - hero.y) >= 12){
+          hero.isGoing = false;
+          hero.vx = 0;
+          hero.vy = 0;
+          hero.lastX = hero.x;
+          hero.lastY = hero.y;
+          direct = '';
+        }
       }
-      //DX
-      if (pressKeys.left) {
-        hero.vx = -kx;
-        direct += 'left';
-      } else if (pressKeys.right) {
-        hero.vx = kx;
-        direct += 'right';
-      } else {
-        hero.vx = 0;
+
+      // Start move.
+      if (hero.vx !== 0 || hero.vy !== 0) {
+        hero.isGoing = true;
+        hero.x += hero.vx;
+        hero.y += hero.vy;
       }
 
       // Playing current frames.
@@ -184,10 +206,6 @@
           hero.gotoAndPlay(startFrame);
         }
       }
-
-      hero.x += hero.vx;
-      hero.y += hero.vy;
-
     }
 
     initApp();
