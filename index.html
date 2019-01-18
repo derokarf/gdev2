@@ -90,11 +90,10 @@
 
         land = new Sprite(resources.land.texture);
 
-        hero.y = app.renderer.view.height/2 - hero.height/2;
-        hero.x = app.renderer.view.width/2 - hero.width/2;
+        hero.y = app.renderer.view.height/2 - hero.height/2 + 3;
+        hero.x = app.renderer.view.width/2 - hero.width/2 - 3;
 
-        hero.animationSpeed = 1;
-
+        hero.animationSpeed = 1.5;
         hero.vx = 0;
         hero.vy = 0;
         hero.lastX = hero.x;
@@ -157,8 +156,18 @@
     }
 
     function mainLoop(delta) {
+      // Continue or stop moving.
+      if (Math.abs(hero.lastX - hero.x) >= 21 || Math.abs(hero.lastY - hero.y) >= 12){
+        hero.isGoing = false;
+        hero.vx = 0;
+        hero.vy = 0;
+        hero.lastX = hero.x;
+        hero.lastY = hero.y;
+        direct = '';
+      }
+
       // Hero movement
-      //DY
+      // DY.
       if (!hero.isGoing) {
         if (pressKeys.up) {
           hero.vy = -ky;
@@ -169,7 +178,7 @@
         } else {
           hero.vy = 0;
         }
-        //DX
+        // DX.
         if (pressKeys.left) {
           hero.vx = -kx;
           direct += 'left';
@@ -178,15 +187,6 @@
           direct += 'right';
         } else {
           hero.vx = 0;
-        }
-      } else {
-        if (Math.abs(hero.lastX - hero.x) >= 21 || Math.abs(hero.lastY - hero.y) >= 12){
-          hero.isGoing = false;
-          hero.vx = 0;
-          hero.vy = 0;
-          hero.lastX = hero.x;
-          hero.lastY = hero.y;
-          direct = '';
         }
       }
 
